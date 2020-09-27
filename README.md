@@ -39,6 +39,11 @@ The stack should grow very quickly, although if it stops then you may have to us
 ### Start
 Now you can start the program with `node index`
 
+If you decide to make changes to the program, please fork the repository first so your changes can be saved and tracked when you need to update the program.
+
+## Updating
+You can run `git pull` in the same directory as the crawler to fetch the latest changes, if you have made changes without forking the repository, you can either ignore the update or pull all updates and re-do what changes you made. You can do this with `git fetch --all` and then `git reset --hard origin/master`.
+
 ## Options
 You can pass command line arguments to the program to change it's behaviour.
 * `--threads <threads>` - Set the number of threads that the program can use. (Default 3)
