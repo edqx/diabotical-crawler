@@ -15,11 +15,18 @@ Clone the repository locally with `git clone https://github.com/edqx/diabotical-
 Next use `cd diabotical-crawler` to enter the diabotical crawler directory.
 
 ### Start
-Now you can start the program with `npm start`
+Now you can start the program with `node index`
 
 ## Options
 You can pass command line arguments to the program to change it's behaviour.
 * `--threads <threads>` - Set the number of threads that the program can use. (Default 3)
+* `--disable-output` - Completely disable all console output.
+
+### Examples
+`node index`
+`node index --threads 6`
+`node index --disable-output`
+`node index --threads 1 --disable-output`
 
 ### Notes
 I am not responsible for any consequences that may come from you using this program.

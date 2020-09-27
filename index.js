@@ -88,7 +88,7 @@ const workerEvents = new EventEmitter;
             description: "The number of threads to use for searching.",
             default: 3
         })
-        .option("disable-console", {
+        .option("disable-output", {
             type: "boolean",
             description: "Disable console output."
         })
@@ -96,12 +96,12 @@ const workerEvents = new EventEmitter;
 
         
     const log = console.log.bind(console);
-    console.log = (...fmt) => log("[" + new Date().toISOString() + "]", util.format(...fmt));
+    console.log = (...fmt) => { if (!argv["disable-output"]) return log("[" + new Date().toISOString() + "]", util.format(...fmt)) };
 
-    console.success = (...fmt) => log("[" + new Date().toISOString() + "]", "[SUCCESS]".bgGreen, util.format(...fmt));
-    console.info    = (...fmt) => log("[" + new Date().toISOString() + "]", "[INFO   ]".bgBlue, util.format(...fmt));
-    console.warn    = (...fmt) => log("[" + new Date().toISOString() + "]", "[WARN   ]".bgYellow, util.format(...fmt));
-    console.error   = (...fmt) => log("[" + new Date().toISOString() + "]", "[ERROR  ]".bgRed, util.format(...fmt));
+    console.success = (...fmt) => console.log("[SUCCESS]".bgGreen, util.format(...fmt));
+    console.info    = (...fmt) => console.log("[INFO   ]".bgBlue, util.format(...fmt));
+    console.warn    = (...fmt) => console.log("[WARN   ]".bgYellow, util.format(...fmt));
+    console.error   = (...fmt) => console.log("[ERROR  ]".bgRed, util.format(...fmt));
 
     await mkdir("dump/matches");
     await mkdir("dump/players");
