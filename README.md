@@ -23,10 +23,10 @@ You can pass command line arguments to the program to change it's behaviour.
 * `--disable-output` - Completely disable all console output.
 
 ### Examples
-`node index`
-`node index --threads 6`
-`node index --disable-output`
-`node index --threads 1 --disable-output`
+* `node index`
+* `node index --threads 6`
+* `node index --disable-output`
+* `node index --threads 1 --disable-output`
 
 ### Notes
 I am not responsible for any consequences that may come from you using this program.
