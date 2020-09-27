@@ -1,0 +1,19 @@
+{
+  "name": "v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "mkdirp": "^1.0.4",
+    "node-fetch": "^2.6.1",
+    "uuid": "^8.3.0",
+    "yargs": "^16.0.3"
+  }
+}
