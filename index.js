@@ -92,6 +92,10 @@ const workerEvents = new EventEmitter;
             type: "boolean",
             description: "Disable console output."
         })
+        .option("collect-profiles", {
+            type: "boolean",
+            description: "Whether or not to collect user profiles."
+        })
         .argv;
 
         
@@ -117,7 +121,7 @@ const workerEvents = new EventEmitter;
         }
     });
 
-    const stack = get_stack().filter(({ id }) => !player_exists(id) && !match_exists(id));
+    let stack = get_stack().filter(({ id }) => !player_exists(id) && !match_exists(id));
 
     const threadQueue = [];
 
@@ -148,6 +152,8 @@ const workerEvents = new EventEmitter;
     });
 
     (async function loop() {
+        stack = stack.filter(task => task);
+        
         let i = stack.length;
 
         if (!~threads.findIndex(thread => thread.is_free)) await waitForThread();
@@ -156,68 +162,76 @@ const workerEvents = new EventEmitter;
             (async function() {
                 const task = stack[i];
                 
-                if (typeof task.thread === "undefined") {
-                    // console.info("Allocating thread for operation " + task.op + " (" + task.id + ")");
+                if (task) {
+                    if (typeof task.thread === "undefined") {
+                        // console.info("Allocating thread for operation " + task.op + " (" + task.id + ")");
 
-                    let t = 0;
+                        let t = 0;
 
-                    while (!threads[t].is_free) {
-                        ++t;
+                        while (!threads[t].is_free) {
+                            ++t;
 
-                        if (t >= threads.length) {
-                            const id = joinThreadQueue();
-                            
-                            // console.warn("No threads available, queuing for available thread (" + id + ").");
+                            if (t >= threads.length) {
+                                const id = joinThreadQueue();
+                                
+                                // console.warn("No threads available, queuing for available thread (" + id + ").");
 
-                            const thread = await waitForThread(id);
+                                const thread = await waitForThread(id);
 
-                            t = threads.indexOf(thread);
-                            break;
+                                t = threads.indexOf(thread);
+                                break;
+                            }
                         }
-                    }
-                    
-                    console.info("Found thread " + t + " available for operation " + task.op + " (" + task.id + ")");
-
-                    threads[t].is_free = false;
-                    task.thread = t;
-                    
-                    threads[t].worker.postMessage({ op: task.op, data: task.id });
-                    
-                    console.info("Posted operation for " + task.op + " (" + task.id + "), awaiting reply..");
-
-                    function onReply(message) {
-                        threads[t].worker.off("message", onReply);
-
-                        remove_from_stack(stack, task.op, task.id);
                         
-                        threads[t].is_free = true;
+                        console.info("Found thread " + t + " available for operation " + task.op + " (" + task.id + ")");
 
-                        workerEvents.emit("freed", threads[t]);
+                        threads[t].is_free = false;
+                        task.thread = t;
+                    
+                        threads[t].worker.postMessage({ op: task.op, data: task.id });
                         
-                        console.info("Reply for operation " + task.op + " (" + task.id + "), received, freed worker.");
+                        console.info("Posted operation for " + task.op + " (" + task.id + "), awaiting reply..");
 
-                        if (message.data) {
-                            if (message.op === "match" && task.op === "getmatch") {
-                                save_match(message.data.match_id, message.data);
+                        function onReply(message) {
+                            threads[t].worker.off("message", onReply);
 
-                                const players = message.data.clients.filter(player => !player_exists(player.user_id) && !is_in_stack(stack, "getmatches", player.user_id));
+                            remove_from_stack(stack, task.op, task.id);
+                            
+                            threads[t].is_free = true;
 
-                                for (let i = 0; i < players.length; i++) {
-                                    save_player(players[i].user_id, players[i]);
+                            workerEvents.emit("freed", threads[t]);
+                            
+                            console.info("Reply for operation " + task.op + " (" + task.id + "), received, freed worker.");
 
-                                    add_to_stack(stack, "getmatches", players[i].user_id);
-                                }
-                            } else if (message.op === "matches" && task.op === "getmatches") {
-                                const matches = message.data.filter(match => !match_exists(match.match_id) && !is_in_stack(stack, "getmatch", match.match_id));
+                            if (message.data) {
+                                if (message.op === "match" && task.op === "getmatch") {
+                                    save_match(message.data.match_id, message.data);
 
-                                for (let i = 0; i < matches.length; i++) {
-                                    add_to_stack(stack, "getmatch", matches[i].match_id);
+                                    const players = message.data.clients.filter(player => !player_exists(player.user_id) && !is_in_stack(stack, "getmatches", player.user_id));
+
+                                    for (let i = 0; i < players.length; i++) {
+                                        add_to_stack(stack, "getmatches", players[i].user_id);
+
+                                        if (argv["collect-profiles"]) {
+                                            add_to_stack(stack, "getprofile", players[i].user_id);
+                                        } else {
+                                            save_player(players[i].user_id, players[i]);
+                                        }
+                                    }
+                                } else if (message.op === "matches" && task.op === "getmatches") {
+                                    const matches = message.data.filter(match => !match_exists(match.match_id) && !is_in_stack(stack, "getmatch", match.match_id));
+
+                                    for (let i = 0; i < matches.length; i++) {
+                                        add_to_stack(stack, "getmatch", matches[i].match_id);
+                                    }
+                                } else if (message.op === "profile" && task.op === "getprofile") {
+                                    save_player(message.data.user_id, message.data);
                                 }
                             }
                         }
+                        
+                        threads[t].worker.on("message", onReply);
                     }
-                    
-                    threads[t].worker.on("message", onReply);
                 }
             })();
         }

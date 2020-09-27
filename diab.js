@@ -16,6 +16,18 @@ async function safeFetch(url, options) {
     }
 }
 
+async function getUser(uid) {
+    const res = await safeFetch(BASE_API + "/users/" + uid);
+
+    if (res.status !== 200) {
+        return null;
+    }
+
+    const json = await res.json();
+
+    return json;
+}
+
 async function getMatches(uid) {
     const res = await safeFetch(BASE_API + "/users/" + uid + "/matches");
 
@@ -40,4 +52,4 @@ async function getMatch(mid) {
     return json.match;
 }
 
-module.exports = { getMatches, getMatch }
+module.exports = { getUser, getMatches, getMatch }
