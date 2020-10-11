@@ -156,7 +156,10 @@ const workerEvents = new EventEmitter;
         
         let i = stack.length;
 
-        if (!~threads.findIndex(thread => thread.is_free)) await waitForThread();
+        if (!~threads.findIndex(thread => thread.is_free)) {
+            console.warn("No threads available, queuing for available thread.")
+            await waitForThread();
+        }
 
         while (i-- > Math.max(stack.length - (threads.length * 3), 0)) {
             (async function() {

@@ -12,7 +12,7 @@
 Clone the repository locally with `git clone https://github.com/edqx/diabotical-crawler.git`, this will take a few seconds.
 
 ### Install packages
-Next use `cd diabotical-crawler` to enter the diabotical crawler directory.
+Next use `cd diabotical-crawler` to enter the diabotical crawler directory and install packages using `npm install`
 
 ### Setup
 The program will not run without any users or matches in the _stack_. You can create a base stack for the program to work from by creating a file named `stack.json` and using any of the following templates, replacing <userid> with your user ID and <matchid> with a match ID to work from.
